@@ -1,6 +1,7 @@
 
 *txt
 *png
+*npz
 
 # Compiled file
 /venv*
