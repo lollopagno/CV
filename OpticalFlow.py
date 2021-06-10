@@ -15,7 +15,7 @@ color = np.random.randint(0, 255, (100, 3))
 
 class OpticalFlow:
     r"""
-    # TODO documentation
+    Class optical flow
     """
 
     def __init__(self, frame):
@@ -27,8 +27,8 @@ class OpticalFlow:
         self.good_old = []
 
     def start(self, frame):
-        frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
+        frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         self.p1, st, err = cv.calcOpticalFlowPyrLK(self.previous_frame, frame_gray, self.p0, None, **lk_params)
 
         # Select good points
@@ -44,6 +44,7 @@ class OpticalFlow:
 
         img = cv.add(frame, self.mask)
 
+        # Update parameters
         self.previous_frame = frame_gray.copy()
         self.p0 = self.good_new.reshape(-1, 1, 2)
 

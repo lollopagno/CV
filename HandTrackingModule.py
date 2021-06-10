@@ -1,12 +1,10 @@
 import cv2 as cv
 import mediapipe as mp
-import time
-import numpy as np
 
 
 class HandDetector:
     r"""
-    # TODO documentation
+    Class hand detector
     """
 
     def __init__(self, mode=False, max_hands=2, detection_confidence=0.5, tracking_confidence=0.5):
@@ -25,10 +23,9 @@ class HandDetector:
 
     def find_hands(self, img, draw=True):
         r"""
-        # TODO documentation
-        :param img:
-        :param draw:
-        :return:
+        Find hands.
+        :param img: image in which to draw the found hands.
+        :param draw: flag, true if draw the hands.
         """
 
         imgRGB = cv.cvtColor(img, cv.COLOR_BGR2RGB)
@@ -36,16 +33,16 @@ class HandDetector:
 
         if self.results.multi_hand_landmarks:  # Detect multi hands
             for handLms in self.results.multi_hand_landmarks:
-                if draw:        
+                if draw:
                     self.mp_draw.draw_landmarks(img, handLms, self.mp_hands.HAND_CONNECTIONS)
 
     def find_position(self, img, hand_no=0, draw=True):
         r"""
-        # TODO documentation
-        :param img:
-        :param hand_no:
-        :param draw:
-        :return:
+        Find position hands by your ids
+        :param img: image in which to draw the positions.
+        :param hand_no: index of the array containing the hands.
+        :param draw: flag, true if draw the positions.
+        :return: list containing the position of hands.
         """
 
         lm_list = []

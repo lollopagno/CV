@@ -1,7 +1,6 @@
 import cv2 as cv
 import time
 import numpy as np
-import mediapipe as mp
 import HandTrackingModule as htm
 from OpticalFlow import OpticalFlow
 
