@@ -49,7 +49,6 @@ while True:
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         cv.imshow(NAME_WINDOW, frame)
 
-
         # Find the chess board corners
         ret, corners = cv.findChessboardCorners(gray, sizeChessboard, None)
         # cv.findCirclesGrid() # per scacchiera con cerchi
@@ -73,17 +72,27 @@ while True:
             # Restituisce: la matrice della telecamera, i coeff. di distorsione, i vettori di traslazione e rotazione
             ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
-            if ret:
-                # Save image
-                cv.imwrite(f"{curren_date}/detected{count}.png", frame_with_chessboard)
-                cv.imwrite(f"{curren_date}/view{count}.png", frame)
+            # if ret:
+            #     # Save image
+            #     cv.imwrite(f"{curren_date}/detected{count}.png", frame_with_chessboard)
+            #     cv.imwrite(f"{curren_date}/view{count}.png", frame)
+            #
+            #     info_image = f"{count}- Camera matrix: \n{mtx}\nDist: {dist}\nDist: {dist}\nTvecs: {tvecs}\n"
+            #     pattern_end = "\n\n*************************\n\n"
+            #
+            #     file = open(f"{curren_date}/{PATH_FILE}", "a")
+            #     file.write(info_image + pattern_end)
+            #     file.close()
 
-                info_image = f"{count}- Camera matrix: \n{mtx}\nDist: {dist}\nDist: {dist}\nTvecs: {tvecs}\n"
-                pattern_end = "\n\n*************************\n\n"
+            # Total error
+            mean_error = 0
+            for i in range(len(objpoints)):
+                imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx,
+                                                 dist)  # Proietta i punti 3D in un immagine planare
+                error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2) / len(imgpoints2)
+                mean_error += error
 
-                file = open(f"{curren_date}/{PATH_FILE}", "a")
-                file.write(info_image + pattern_end)
-                file.close()
+            print("Total error: {}".format(mean_error / len(objpoints)))
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
