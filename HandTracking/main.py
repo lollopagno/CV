@@ -1,13 +1,13 @@
 import cv2 as cv
 import time
 import numpy as np
-from HandTracking import HandTrackingModule as htm
+from HandTracking.HandTrackingModule import HandDetector
 from HandTracking.OpticalFlow import OpticalFlow
 
 cap = cv.VideoCapture(0)
 
 previous_time = 0
-detector = htm.HandDetector()
+detector = HandDetector()
 
 _, first_frame = cap.read()
 of = OpticalFlow(first_frame)
