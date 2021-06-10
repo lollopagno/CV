@@ -1,8 +1,8 @@
 import cv2 as cv
 import time
 import numpy as np
-import HandTrackingModule as htm
-from OpticalFlow import OpticalFlow
+from HandTracking import HandTrackingModule as htm
+from HandTracking.OpticalFlow import OpticalFlow
 
 cap = cv.VideoCapture(0)
 
