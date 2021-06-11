@@ -2,6 +2,7 @@
 *txt
 *png
 *npz
+*yml
 
 # Compiled file
 /venv*
