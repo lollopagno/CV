@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import os
 from datetime import datetime
+from colorama import Fore
 
 PATH_FILE = "info.txt"
 
@@ -45,11 +46,12 @@ class Calibration:
         frame_with_chessboard = img_original.copy()
 
         # Find the chess board corners
-        ret, corners = cv.findChessboardCorners(gray, self.size, None)
+        success, corners = cv.findChessboardCorners(gray, self.size, None)
         # cv.findCirclesGrid() # per scacchiera con cerchi
 
         # If found, add object points, image points (after refining them)
-        if ret:
+        if success:
+            ret = success
             self.counter_image += 1
 
             self.obj_points.append(self.obj_p)
@@ -75,10 +77,10 @@ class Calibration:
 
             error = np.divide(mean_error, len(self.obj_points))
 
-            print(f"Save file with error: {error}, image:{self.counter_image}")
+            print(Fore.WHITE + f"Save file! Error: {error}, Image:{self.counter_image}")
             self.save_data(img_original, frame_with_chessboard, mtx, dist, rvecs, tvecs)
 
-        return error, frame_with_chessboard
+        return success, error, frame_with_chessboard
 
     def save_data(self, img_original, img, mtx, dist, rvecs, tvecs):
         r"""
@@ -116,14 +118,14 @@ def save_coefficients(mtx, dist, path):
     """Save the camera matrix and the distortion coefficients to given path/file."""
 
     cv_file = cv.FileStorage(path, cv.FILE_STORAGE_WRITE)
-    cv_file.write('K', mtx)
-    cv_file.write('D', dist)
+    cv_file.write('Mtx', mtx)
+    cv_file.write('Dist', dist)
 
     # note you *release* you don't close() a FileStorage object
     cv_file.release()
 
 
-def load_coefficients(path):
+def load_data(path):
     """Loads camera matrix and distortion coefficients."""
 
     # FILE_STORAGE_READ
@@ -131,8 +133,8 @@ def load_coefficients(path):
 
     # note we also have to specify the type to retrieve other wise we only get a
     # FileNode object back instead of a matrix
-    camera_matrix = cv_file.getNode('K').mat()
-    dist_matrix = cv_file.getNode('D').mat()
+    mtx = cv_file.getNode('Mtx').mat()
+    dist = cv_file.getNode('Dist').mat()
 
     cv_file.release()
-    return [camera_matrix, dist_matrix]
+    return [mtx, dist]

@@ -67,6 +67,6 @@ class PoseEstimation:
             if self.draw_cue:
                 img_original = draw_cube(img_original, img_pts)
             else:
-                img_original = draw_arrow(img_original, img_pts)
+                img_original = draw_arrow(img_original, corners_2, img_pts)
 
         return img_original
