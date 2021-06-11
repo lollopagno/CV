@@ -45,11 +45,12 @@ def draw_cube(img, img_pts):
 
 class PoseEstimation:
 
-    def __init__(self, obj_p, criteria, name_file, size_chessboard=(9, 6)):
+    def __init__(self, obj_p, criteria, name_file, size_chessboard=(9, 6), draw_cube = False):
         self.criteria = criteria
         self.mtx, self.dist = load_data(name_file)
         self.size = size_chessboard
         self.obj_p = obj_p
+        self.draw_cue = draw_cube
 
     def start(self, img_original):
         gray = cv.cvtColor(img_original, cv.COLOR_BGR2GRAY)
@@ -63,6 +64,9 @@ class PoseEstimation:
 
             # Project 3D points to image plane
             img_pts, jac = cv.projectPoints(axis_cube, rvecs, tvecs, self.mtx, self.dist)
-            img_original = draw_cube(img_original, img_pts)
+            if self.draw_cue:
+                img_original = draw_cube(img_original, img_pts)
+            else:
+                img_original = draw_arrow(img_original, img_pts)
 
         return img_original
