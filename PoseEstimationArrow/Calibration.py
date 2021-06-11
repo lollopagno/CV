@@ -3,10 +3,13 @@ import numpy as np
 import os
 from datetime import datetime
 
-PATH_FILE = "info_images.txt"
+PATH_FILE = "info.txt"
 
 
 class Calibration:
+    r"""
+    Class calibration.
+    """
 
     def __init__(self, obj_p, criteria, size_chessboard=(9, 6)):
 
@@ -24,17 +27,22 @@ class Calibration:
         os.mkdir(self.current_date)
         os.mkdir(f"{self.current_date}/View")
         os.mkdir(f"{self.current_date}/Detected")
+        os.mkdir(f"{self.current_date}/Data")
+        os.mkdir(f"{self.current_date}/Yaml")
+
+        self.counter_image = 0
 
         # Create file
         open(f"{self.current_date}/{PATH_FILE}", "x")
 
-    def start(self, img_original):
-        count = 0
-        total_error = 0
-        frame_with_chessboard = img_original.copy()
-        finish = False
+    def start(self, img_original, gray):
+        r"""
+        :param img_original: original image (RGB).
+        :param gray: grayscale image.
+        """
 
-        gray = cv.cvtColor(img_original, cv.COLOR_BGR2GRAY)
+        error = 0
+        frame_with_chessboard = img_original.copy()
 
         # Find the chess board corners
         ret, corners = cv.findChessboardCorners(gray, self.size, None)
@@ -42,16 +50,16 @@ class Calibration:
 
         # If found, add object points, image points (after refining them)
         if ret:
-            count += 1
+            self.counter_image += 1
 
             self.obj_points.append(self.obj_p)
-            corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1),
-                                       self.criteria)  # Aumento la precisione deii corner trovati
+            corners_2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1),
+                                        self.criteria)  # Aumento la precisione deii corner trovati
 
-            self.img_points.append(corners2)
+            self.img_points.append(corners_2)
 
             # Draw and display the corners
-            cv.drawChessboardCorners(frame_with_chessboard, self.size, corners2, ret)  # Disegno il pattern trovato
+            cv.drawChessboardCorners(frame_with_chessboard, self.size, corners_2, ret)  # Disegno il pattern trovato
 
             # Calibrazione della telecamena
             # Restituisce: la matrice della telecamera, i coeff. di distorsione, i vettori di traslazione e rotazione
@@ -65,39 +73,66 @@ class Calibration:
                 error = cv.norm(self.img_points[i], img_points_2, cv.NORM_L2) / len(img_points_2)
                 mean_error += error
 
-            total_error = np.divide(mean_error, len(self.obj_points))
-            error_rounded = np.round(total_error, 2)
+            error = np.divide(mean_error, len(self.obj_points))
 
-            if error_rounded <= 0.02:
-                print(f"Save file with error: {error_rounded}")
-                finish = save_data(count, self.current_date, img_original, frame_with_chessboard, mtx, dist, rvecs,
-                                   tvecs)
+            print(f"Save file with error: {error}, image:{self.counter_image}")
+            self.save_data(img_original, frame_with_chessboard, mtx, dist, rvecs, tvecs)
 
-        return total_error, frame_with_chessboard, finish
+        return error, frame_with_chessboard
+
+    def save_data(self, img_original, img, mtx, dist, rvecs, tvecs):
+        r"""
+        Save images, matrixs and coefficients.
+        :param img_original: original image.
+        :param img: img with chessboard corner.
+        :param mtx: matrix
+        :param dist: distortion coefficients.
+        :param rvecs translation vectors.
+        :param tvecs: rotation vectors.
+        """
+
+        try:
+            cv.imwrite(f"{self.current_date}/Detected/detected{self.counter_image}.png", img)
+            cv.imwrite(f"{self.current_date}/View/view{self.counter_image}.png", img_original)
+
+            info_image = f"{self.counter_image}- Camera matrix: \n{mtx}\nDist: {dist}\nDist: {dist}\nTvecs: {tvecs}\n"
+            pattern_end = "\n\n*************************\n\n"
+
+            file = open(f"{self.current_date}/{PATH_FILE}", "a")
+            file.write(info_image + pattern_end)
+            file.close()
+
+            # Save result calibration
+            np.savez(f"{self.current_date}/Data/data_{self.counter_image}", mtx=mtx, dist=dist, rvecs=rvecs,
+                     tvecs=tvecs)
+
+            save_coefficients(mtx, dist, f"{self.current_date}/Yaml/calibration_{self.counter_image}.yml")
+
+        except Exception as e:
+            print(e)
 
 
-def save_data(count, current_date, img_original, img, mtx, dist, rvecs, tvecs):
-    r"""
-    # TODO documentation
-    """
-    # Save image
+def save_coefficients(mtx, dist, path):
+    """Save the camera matrix and the distortion coefficients to given path/file."""
 
-    try:
-        cv.imwrite(f"{current_date}/Detected/detected{count}.png", img)
-        cv.imwrite(f"{current_date}/View/view{count}.png", img_original)
+    cv_file = cv.FileStorage(path, cv.FILE_STORAGE_WRITE)
+    cv_file.write('K', mtx)
+    cv_file.write('D', dist)
 
-        info_image = f"{count}- Camera matrix: \n{mtx}\nDist: {dist}\nDist: {dist}\nTvecs: {tvecs}\n"
-        pattern_end = "\n\n*************************\n\n"
+    # note you *release* you don't close() a FileStorage object
+    cv_file.release()
 
-        file = open(f"{current_date}/{PATH_FILE}", "a")
-        file.write(info_image + pattern_end)
-        file.close()
 
-        # Save result calibration
-        np.savez(f"{current_date}/data", mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+def load_coefficients(path):
+    """Loads camera matrix and distortion coefficients."""
 
-    except Exception as e:
-        print(e)
-        return False
+    # FILE_STORAGE_READ
+    cv_file = cv.FileStorage(path, cv.FILE_STORAGE_READ)
 
-    return True
+    # note we also have to specify the type to retrieve other wise we only get a
+    # FileNode object back instead of a matrix
+    camera_matrix = cv_file.getNode('K').mat()
+    dist_matrix = cv_file.getNode('D').mat()
+
+    cv_file.release()
+    return [camera_matrix, dist_matrix]
