@@ -1,13 +1,15 @@
 import numpy as np
 import cv2 as cv
 import time
+from colorama import Fore
 
 from PoseEstimationArrow import Calibration as cal
 from PoseEstimationArrow.PoseEstimation import PoseEstimation
+import utility
 
 NAME_WINDOW = "Calibration"
 clicked_image = 0
-minimum_image = 2
+minimum_image = 5
 errors = np.zeros(minimum_image)
 
 # Prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
@@ -22,33 +24,19 @@ def callback_mouse(event, x, y, flag, param):
     global clicked_image, minimum_image
 
     if event == cv.EVENT_LBUTTONDOWN:
-        print(f"Clicked image in position {x, y}")
+        print(Fore.GREEN + f"Clicked image in position {x, y}")
 
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        error, img = calibration.start(frame, gray)
-        errors[clicked_image] = error
+        success, error, img = calibration.start(frame, gray)
 
-        # img = pose_estimation.start(frame)
+        if success:
+            errors[clicked_image] = error
+            clicked_image += 1
+            # img = pose_estimation.start(frame)
 
-        clicked_image += 1
         cv.putText(frame, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         cv.imshow(NAME_WINDOW, img)
         cv.waitKey(1)
-
-
-def draw_corners_chessboard(img, size, ):
-    global criteria, obj_p
-    obj_points = []
-    img_points = []
-
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    ret, corners = cv.findChessboardCorners(gray, size, None)
-
-    if ret:
-        obj_points.append(obj_p)
-        corners_2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-        img_points.append(corners_2)
-        cv.drawChessboardCorners(img, size, corners_2, ret)
 
 
 # Callback click mouse
@@ -59,33 +47,50 @@ cv.setMouseCallback(NAME_WINDOW, callback_mouse)
 cap = cv.VideoCapture(0)
 
 calibration = cal.Calibration(obj_p, criteria=criteria)
-# pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
+pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
 
 previous_time = 0
+
+mtx_arr = []
+dist_arr = []
+
+mtx_mean = []
+dist_mean = []
 
 while True:
 
     success, frame = cap.read()
 
-    if success and clicked_image < minimum_image:
+    if success:
 
         # Frame rate
         current_time = time.time()
         fps = np.divide(1, (current_time - previous_time))
         previous_time = current_time
         cv.putText(frame, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
-        cv.putText(frame, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
 
-        cv.imshow(NAME_WINDOW, frame)
-        cv.waitKey(1)
+        if clicked_image < minimum_image:
 
-    else:
-        print(errors)
-        # TODO check this
+            cv.putText(frame, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            cv.imshow(NAME_WINDOW, frame)
+            cv.waitKey(1)
 
-        # mtx, dist = cal.load_coefficients(f'{calibration.current_date}/calibration_chessboard.yml')
-        # undistort = cv.undistort(img_view, mtx, dist, None, None)
-        # cv.imwrite(f'{calibration.current_date}/undist.jpg', undistort)
-        # cv.imshow('Undistort', undistort)
-        # cv.waitKey(1)
-        break
+        else:
+
+            print(Fore.RED + f"Total error: {np.mean(errors)}")
+
+            if len(mtx_arr) == 0:
+                mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image, calibration.current_date)
+
+            print(mtx_mean)
+
+            height, width = frame.shape[:2]
+            new_camera_mtx, roi = cv.getOptimalNewCameraMatrix(mtx_mean, dist_mean, (width, height), 1, (width, height))
+
+            # Undistort
+            dst = cv.undistort(frame, mtx_mean, dist_mean, None, new_camera_mtx)
+
+            cv.putText(dst, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
+            cv.imshow('Undistort', dst)
+            cv.imshow(NAME_WINDOW, frame)
+            cv.waitKey(1)
