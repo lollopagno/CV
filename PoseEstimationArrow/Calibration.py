@@ -123,18 +123,3 @@ def save_coefficients(mtx, dist, path):
 
     # note you *release* you don't close() a FileStorage object
     cv_file.release()
-
-
-def load_data(path):
-    """Loads camera matrix and distortion coefficients."""
-
-    # FILE_STORAGE_READ
-    cv_file = cv.FileStorage(path, cv.FILE_STORAGE_READ)
-
-    # note we also have to specify the type to retrieve other wise we only get a
-    # FileNode object back instead of a matrix
-    mtx = cv_file.getNode('Mtx').mat()
-    dist = cv_file.getNode('Dist').mat()
-
-    cv_file.release()
-    return [mtx, dist]

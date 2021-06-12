@@ -1,8 +1,7 @@
 import numpy as np
 import cv2 as cv
 
-
-def draw_corners_chessboard(img, size, frame, criteria, obj_p):
+async def draw_corners_chessboard(frame, criteria, obj_p, size=(9, 6)):
     obj_points = []
     img_points = []
 
@@ -13,7 +12,7 @@ def draw_corners_chessboard(img, size, frame, criteria, obj_p):
         obj_points.append(obj_p)
         corners_2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
         img_points.append(corners_2)
-        cv.drawChessboardCorners(img, size, corners_2, ret)
+        cv.drawChessboardCorners(frame, size, corners_2, ret)
 
 
 def get_matrices(mtx, dist, min_image, current_date):
