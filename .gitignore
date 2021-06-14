@@ -3,5 +3,10 @@
 /venv*
 .idea*
 
+*npz
+*png
+*yml
+*txt
+
 # Python cache
 *pyc
