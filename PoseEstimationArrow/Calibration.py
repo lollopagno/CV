@@ -38,12 +38,12 @@ class Calibration:
         # Create file
         open(f"{self.current_date}/{PATH_FILE}", "x")
 
-    def start(self):
+    def start(self, frame):
 
         error = 0
-        frame_with_chessboard = self.frame.copy()
+        frame_with_chessboard = frame.copy()
 
-        gray = cv.cvtColor(self.frame, cv.COLOR_BGR2GRAY)
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
         # Find the chess board corners
         success, corners = cv.findChessboardCorners(gray, self.size, None)
@@ -78,7 +78,7 @@ class Calibration:
             error = np.divide(mean_error, len(self.obj_points))
 
             print(Fore.WHITE + f"Save file! Error: {error}, Image:{self.counter_image}")
-            self.save_data(self.frame, frame_with_chessboard, mtx, dist, rvecs, tvecs)
+            self.save_data(frame, frame_with_chessboard, mtx, dist, rvecs, tvecs)
 
         return success, error, frame_with_chessboard
 
