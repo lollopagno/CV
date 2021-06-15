@@ -1,17 +1,13 @@
 import numpy as np
 import cv2 as cv
 
-async def draw_corners_chessboard(frame, criteria, obj_p, size=(9, 6)):
-    obj_points = []
-    img_points = []
 
+def draw_corners_chessboard(frame, criteria, size=(9, 6)):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     ret, corners = cv.findChessboardCorners(gray, size, None)
 
     if ret:
-        obj_points.append(obj_p)
         corners_2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-        img_points.append(corners_2)
         cv.drawChessboardCorners(frame, size, corners_2, ret)
 
 

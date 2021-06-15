@@ -14,6 +14,8 @@ class Calibration:
 
     def __init__(self, obj_p, criteria, size_chessboard=(9, 6)):
 
+        self.frame = []
+
         self.criteria = criteria
         self.size = size_chessboard
 
@@ -36,14 +38,12 @@ class Calibration:
         # Create file
         open(f"{self.current_date}/{PATH_FILE}", "x")
 
-    def start(self, img_original, gray):
-        r"""
-        :param img_original: original image (RGB).
-        :param gray: grayscale image.
-        """
+    def start(self, frame):
 
         error = 0
-        frame_with_chessboard = img_original.copy()
+        frame_with_chessboard = frame.copy()
+
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
         # Find the chess board corners
         success, corners = cv.findChessboardCorners(gray, self.size, None)
@@ -78,9 +78,12 @@ class Calibration:
             error = np.divide(mean_error, len(self.obj_points))
 
             print(Fore.WHITE + f"Save file! Error: {error}, Image:{self.counter_image}")
-            self.save_data(img_original, frame_with_chessboard, mtx, dist, rvecs, tvecs)
+            self.save_data(frame, frame_with_chessboard, mtx, dist, rvecs, tvecs)
 
         return success, error, frame_with_chessboard
+
+    def set_frame(self, frame):
+        self.frame = frame
 
     def save_data(self, img_original, img, mtx, dist, rvecs, tvecs):
         r"""
@@ -121,5 +124,4 @@ def save_coefficients(mtx, dist, path):
     cv_file.write('Mtx', mtx)
     cv_file.write('Dist', dist)
 
-    # note you *release* you don't close() a FileStorage object
     cv_file.release()

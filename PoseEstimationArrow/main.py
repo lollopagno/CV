@@ -5,7 +5,7 @@ from colorama import Fore
 
 from PoseEstimationArrow import Calibration as cal
 from PoseEstimationArrow.PoseEstimation import PoseEstimation
-import utility
+from PoseEstimationArrow import utility
 
 NAME_WINDOW = "Calibration"
 clicked_image = 0
@@ -19,78 +19,83 @@ obj_p[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
 # Termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
+calibration = cal.Calibration(obj_p, criteria=criteria)
+
+mtx_mean = []
+dist_mean = []
+
+
+# pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
 
 def callback_mouse(event, x, y, flag, param):
-    global clicked_image, minimum_image
+    global clicked_image, minimum_image, calibration
 
     if event == cv.EVENT_LBUTTONDOWN:
+        frame = calibration.frame
         print(Fore.GREEN + f"Clicked image in position {x, y}")
 
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        success, error, img = calibration.start(frame, gray)
+        success, error, img = calibration.start(frame)
 
         if success:
             errors[clicked_image] = error
             clicked_image += 1
             # img = pose_estimation.start(frame)
 
-        cv.putText(frame, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+        cv.putText(img, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         cv.imshow(NAME_WINDOW, img)
         cv.waitKey(1)
 
 
-# Callback click mouse
-cv.namedWindow(NAME_WINDOW)
-cv.setMouseCallback(NAME_WINDOW, callback_mouse)
-# TODO set callback every frame to draw corners
+def main():
+    global clicked_image, minimum_image, calibration, criteria, mtx_mean, dist_mean
 
-cap = cv.VideoCapture(0)
+    # Callback click mouse
+    cv.namedWindow(NAME_WINDOW)
+    cv.setMouseCallback(NAME_WINDOW, callback_mouse, calibration)
 
-calibration = cal.Calibration(obj_p, criteria=criteria)
-pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
+    cap = cv.VideoCapture(0)
 
-previous_time = 0
+    previous_time = 0
 
-mtx_arr = []
-dist_arr = []
+    mtx_arr = []
+    dist_arr = []
 
-mtx_mean = []
-dist_mean = []
+    while True:
 
-while True:
+        success, frame = cap.read()
 
-    success, frame = cap.read()
+        if success:
+            # Frame rate
+            current_time = time.time()
+            fps = np.divide(1, (current_time - previous_time))
+            previous_time = current_time
+            cv.putText(frame, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
 
-    if success:
+            calibration.set_frame(frame.copy())
+            utility.draw_corners_chessboard(frame, criteria)
 
-        # Frame rate
-        current_time = time.time()
-        fps = np.divide(1, (current_time - previous_time))
-        previous_time = current_time
-        cv.putText(frame, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
+            if clicked_image < minimum_image:
 
-        if clicked_image < minimum_image:
+                cv.putText(frame, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0),
+                           2)
+                cv.imshow(NAME_WINDOW, frame)
+                cv.waitKey(1)
 
-            cv.putText(frame, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
-            cv.imshow(NAME_WINDOW, frame)
-            cv.waitKey(1)
+            else:
 
-        else:
+                if len(mtx_arr) == 0:
+                    print(Fore.RED + f"Total error: {np.mean(errors)}")
+                    mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image,
+                                                               calibration.current_date)
 
-            print(Fore.RED + f"Total error: {np.mean(errors)}")
+                # Undistort
+                dst = cv.undistort(frame, mtx_mean, dist_mean)  # , None, new_camera_mtx)
 
-            if len(mtx_arr) == 0:
-                mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image, calibration.current_date)
+                cv.putText(dst, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
+                cv.imshow('Undistort', dst)
+                cv.imshow(NAME_WINDOW, frame)
+                cv.waitKey(1)
 
-            print(mtx_mean)
 
-            height, width = frame.shape[:2]
-            new_camera_mtx, roi = cv.getOptimalNewCameraMatrix(mtx_mean, dist_mean, (width, height), 1, (width, height))
-
-            # Undistort
-            dst = cv.undistort(frame, mtx_mean, dist_mean, None, new_camera_mtx)
-
-            cv.putText(dst, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
-            cv.imshow('Undistort', dst)
-            cv.imshow(NAME_WINDOW, frame)
-            cv.waitKey(1)
+if __name__ == "__main__":
+    main()
