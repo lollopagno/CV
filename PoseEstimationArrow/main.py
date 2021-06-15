@@ -2,7 +2,6 @@ import numpy as np
 import cv2 as cv
 import time
 from colorama import Fore
-import asyncio
 
 from PoseEstimationArrow import Calibration as cal
 from PoseEstimationArrow.PoseEstimation import PoseEstimation
@@ -22,6 +21,9 @@ criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 calibration = cal.Calibration(obj_p, criteria=criteria)
 
+mtx_mean = []
+dist_mean = []
+
 
 # pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
 
@@ -29,9 +31,10 @@ def callback_mouse(event, x, y, flag, param):
     global clicked_image, minimum_image, calibration
 
     if event == cv.EVENT_LBUTTONDOWN:
+        frame = calibration.frame
         print(Fore.GREEN + f"Clicked image in position {x, y}")
 
-        success, error, img = calibration.start()
+        success, error, img = calibration.start(frame)
 
         if success:
             errors[clicked_image] = error
@@ -43,8 +46,8 @@ def callback_mouse(event, x, y, flag, param):
         cv.waitKey(1)
 
 
-async def main():
-    global clicked_image, minimum_image, calibration, criteria
+def main():
+    global clicked_image, minimum_image, calibration, criteria, mtx_mean, dist_mean
 
     # Callback click mouse
     cv.namedWindow(NAME_WINDOW)
@@ -57,23 +60,19 @@ async def main():
     mtx_arr = []
     dist_arr = []
 
-    mtx_mean = []
-    dist_mean = []
-
     while True:
 
         success, frame = cap.read()
 
         if success:
-
-            calibration.set_frame(frame)
-            await asyncio.create_task(utility.draw_corners_chessboard(frame, criteria))
-
             # Frame rate
             current_time = time.time()
             fps = np.divide(1, (current_time - previous_time))
             previous_time = current_time
             cv.putText(frame, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
+
+            calibration.set_frame(frame.copy())
+            utility.draw_corners_chessboard(frame, criteria)
 
             if clicked_image < minimum_image:
 
@@ -99,4 +98,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

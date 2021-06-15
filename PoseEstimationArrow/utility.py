@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 
 
-async def draw_corners_chessboard(frame, criteria, size=(9, 6)):
+def draw_corners_chessboard(frame, criteria, size=(9, 6)):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     ret, corners = cv.findChessboardCorners(gray, size, None)
 
