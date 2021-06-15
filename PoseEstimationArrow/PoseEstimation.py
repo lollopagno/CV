@@ -20,15 +20,25 @@ def load_data(name_file):
 
 
 def draw_arrow(img, corners, img_pts):
-    corner = tuple(corners[0].ravel())
-    img = cv.line(img, corner, tuple(img_pts[0].ravel()), (255, 0, 0), 5)
-    img = cv.line(img, corner, tuple(img_pts[1].ravel()), (0, 255, 0), 5)
-    img = cv.line(img, corner, tuple(img_pts[2].ravel()), (0, 0, 255), 5)
+    """
+    Draw arrows x, y and z.
+    """
+    corners = np.int32(corners)
+    img_pts = np.int32(img_pts)
+
+    corner = tuple(corners[0].ravel())  # Ravel: 'Fonde' due array monodimensionali.
+
+    img = cv.arrowedLine(img, corner, tuple(img_pts[0].ravel()), (255, 0, 0), 5)
+    img = cv.arrowedLine(img, corner, tuple(img_pts[1].ravel()), (0, 255, 0), 5)
+    img = cv.arrowedLine(img, corner, tuple(img_pts[2].ravel()), (0, 0, 255), 5)
 
     return img
 
 
 def draw_cube(img, img_pts):
+    r"""
+    Draw cube.
+    """
     img_pts = np.int32(img_pts).reshape(-1, 2)
 
     # Draw ground floor in green
@@ -50,7 +60,7 @@ class PoseEstimation:
         self.mtx, self.dist = load_data(name_file)
         self.size = size_chessboard
         self.obj_p = obj_p
-        self.draw_cue = draw_cube
+        self.draw_cube = draw_cube
 
     def start(self, img_original):
         gray = cv.cvtColor(img_original, cv.COLOR_BGR2GRAY)
@@ -62,11 +72,13 @@ class PoseEstimation:
             # Find the rotation and translation vectors.
             ret, rvecs, tvecs = cv.solvePnP(self.obj_p, corners_2, self.mtx, self.dist)
 
-            # Project 3D points to image plane
-            img_pts, jac = cv.projectPoints(axis_cube, rvecs, tvecs, self.mtx, self.dist)
-            if self.draw_cue:
+            if self.draw_cube:
+                # Project 3D points to image plane
+                img_pts, _ = cv.projectPoints(axis_cube, rvecs, tvecs, self.mtx, self.dist)
                 img_original = draw_cube(img_original, img_pts)
             else:
+                # Project 3D points to image plane
+                img_pts, _ = cv.projectPoints(axis_arrow, rvecs, tvecs, self.mtx, self.dist)
                 img_original = draw_arrow(img_original, corners_2, img_pts)
 
         return img_original
