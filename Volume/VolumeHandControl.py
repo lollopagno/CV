@@ -19,6 +19,7 @@ devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 volRange = volume.GetVolumeRange()
+volume.SetMasterVolumeLevel(0, None)
 minVol = volRange[0]
 maxVol = volRange[1]
 
@@ -59,7 +60,6 @@ while True:
             length = math.hypot(x8 - x4, y8 - y4)  # Multidimensional Euclidean distance
 
             vol = np.interp(length, [50, 300], [minVol, maxVol])
-            print(length, vol)
             volume.SetMasterVolumeLevel(vol, None)
 
             if length < 50:
