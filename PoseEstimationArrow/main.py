@@ -8,7 +8,7 @@ from PoseEstimationArrow.PoseEstimation import PoseEstimation
 from PoseEstimationArrow import utility
 
 NAME_WINDOW = "Calibration"
-CALIBRATION = False
+CALIBRATION = True
 clicked_image = 0
 minimum_image = 20
 errors = np.zeros(minimum_image)
@@ -92,9 +92,8 @@ def main():
 
                     if len(mtx_arr) == 0:
                         print(Fore.RED + f"Total error: {np.mean(errors)}")
-                        mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image,
-                                                                   calibration.current_date)
-
+                        mtx_mean, dist_mean = utility.get_mean_matrix_coeff(mtx_arr, dist_arr, minimum_image,
+                                                                            calibration.current_date)
                     # Undistort
                     dst = cv.undistort(frame, mtx_mean, dist_mean)
 

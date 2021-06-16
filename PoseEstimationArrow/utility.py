@@ -11,7 +11,7 @@ def draw_corners_chessboard(frame, criteria, size=(9, 6)):
         cv.drawChessboardCorners(frame, size, corners_2, ret)
 
 
-def get_matrices(mtx, dist, min_image, current_date):
+def get_mean_matrix_coeff(mtx, dist, min_image, current_date):
     for index in range(0, min_image):
         with np.load(f"{current_date}/Data/data_{index + 1}.npz") as X:
             _mtx, _dist, _, _ = [X[i] for i in ('mtx', 'dist', 'rvecs', 'tvecs')]
@@ -46,5 +46,7 @@ def get_matrices(mtx, dist, min_image, current_date):
                         pass
                 else:
                     dist_mean[i][j] = element[i][j] + dist_mean[i][j]
+
+    np.savez(f"{current_date}/Data/data_mean", mtx=mtx_mean, dist=dist_mean)
 
     return mtx_mean, dist_mean
