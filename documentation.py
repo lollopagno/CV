@@ -110,6 +110,22 @@ def undistort(img, camera_matrix, coeff_dist, new_camera_matrix):
     """
 
 
+def getOptimalNewCameraMatrix(camera_matrix, coeff_dist, image_size, alpha, new_image_size):
+    r"""
+    Ritorna una nuova matrice intrinseca della fotocamera in base al parametro alpha.
+
+    :param camera_matrix: matrice intriseca della telecamera.
+    :param coeff_dist: coefficienti di distorsione.
+    :param image_size: dimensione dell'immagine originale.
+    :param alpha: parametro di ridimensionamento compreso tra 0 (quando tutti i pixel nell'immagine non distorta sono validi)
+     e 1 (quando tutti i pixel dell'immagine originale vengono mantenuti nell'immagine non distorta).
+    :param new_image_size: dimensione dell'immagine dopo la rettifica. Di default è settato a image_size
+
+    @return     new_camera_matrix: nuova matrice intrinseca della fotocamera.
+                roi: area di tutti i pixel nell'immagine non distorta.
+    """
+
+
 def rodrigues(matrix):
     r"""
     Converte una matrice di rotazione (3x3) in un array di rotazione (3x1, 1x3) o viceversa.
@@ -117,4 +133,10 @@ def rodrigues(matrix):
     :param matrix: matrice o array da convertire.
 
     @return     matrice o array convertito.
+    """
+
+
+def StereoSGBM_create():
+    r"""
+    # TODO documentation
     """
