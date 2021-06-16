@@ -36,6 +36,8 @@ class HandDetector:
                 if draw:
                     self.mp_draw.draw_landmarks(img, handLms, self.mp_hands.HAND_CONNECTIONS)
 
+        return img
+
     def find_position(self, img, hand_no=0, draw=True):
         r"""
         Find position hands by your ids
