@@ -19,9 +19,12 @@ devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 volRange = volume.GetVolumeRange()
-volume.SetMasterVolumeLevel(0, None)
 minVol = volRange[0]
 maxVol = volRange[1]
+
+vol = 0
+vol_bar = 350
+vol_percent = 0
 
 # Time
 previous_time = 0
@@ -60,10 +63,16 @@ while True:
             length = math.hypot(x8 - x4, y8 - y4)  # Multidimensional Euclidean distance
 
             vol = np.interp(length, [50, 300], [minVol, maxVol])
+            vol_bar = np.interp(length, [50, 300], [350, 150])
+            vol_percent = np.interp(length, [50, 300], [0, 100])
             volume.SetMasterVolumeLevel(vol, None)
 
             if length < 50:
                 cv.circle(img, (cx, cy), 15, (0, 255, 0), cv.FILLED)
+
+        cv.rectangle(img, (50, 150), (85, 350), (255, 0, 0), 3)
+        cv.rectangle(img, (50, int(vol_bar)), (85, 350), (255, 0, 0), cv.FILLED)
+        cv.putText(img, f'{int(vol_percent)} %', (530, 35), cv.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 3)
 
         cv.putText(img, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
         cv.imshow("Img", img)
