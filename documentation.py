@@ -153,4 +153,36 @@ def StereoSGBM_create(min_disparity, num_disparities, block_size, P1, P2, disp_1
     :param uniqueness_radio:
     :param speckle_win_size: Massima dimensione di smooth delle regioni di disparità da considerare.
     :param speckle_range: Massima variazione di disparità all'interno di ciascun componente connesso.
+
+    @return oggetto stereo SGBM.
+    """
+
+
+def findFundamentalMat(points_1, points_2, method, ransac_threshold, confidence, max_iters):
+    r"""
+    Calcola la matrice fondamentale a partire dai punti delle due immagini.
+
+    :param points_1: punti della prima immagine.
+    :param points_2: punti della seconda immagine.
+    :param method: intero che indica il tipo di computazione per il calcolo della matrice.
+    :param ransac_threshold: Parametro usato solo per RANSAC. Indica la massima distanza tra un punto a un linea epipolare
+    in pixel, sopra il quale il punto è considerato un outlier e non usato per il calcolo della matrice.
+    :param confidence: Parametro usato solo per RANSAC e LMedS. Specifica il livello di confidenza desiderato.
+    :param max_iters: Numero massimo di iterazioni.
+
+    @return     F: matrice fondamentale.
+                mask: (Opzionale) maschera di output.
+    """
+
+
+def computeCorrespondEpilines(points, which_image, F):
+    r"""
+    Per ogni punto in un immagine, computa la corrispondente epilinea in un altra immagine.
+
+    :param points: punti (matrice 1 x N o N x 1).
+    :param which_image: Indice dell'immagine che contiene i punti.
+    :param F: matrice essenziale.
+
+    @return Vettore contenente le linee epipolari corrispondenti ai punti dell'altra immagine.
+    Ogni linea è codifica da 3 punti (a, b, c) secondo l'equazione ax + by+ c = 0.
     """
