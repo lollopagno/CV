@@ -136,7 +136,21 @@ def rodrigues(matrix):
     """
 
 
-def StereoSGBM_create():
+def StereoSGBM_create(min_disparity, num_disparities, block_size, P1, P2, disp_12_max_diff, pre_filter_cap,
+                      uniqueness_radio, speckle_win_size, speckle_range):
     r"""
-    # TODO documentation
+    Crea un oggettto stereo SGBM.
+
+    :param min_disparity: Valore di disparità minimo tra le due immagini.
+    :param num_disparities: Differenza tra la dispartià massima e quella minima. Deve essere un valore > 0, divisibile per 16.
+    :param block_size: Dimensione del blocco di match. Deve essere un valore >= 1, dispari.
+    :param P1: parametro che controlla l'uniformità della disparità. Tale parametro indica la penalità
+    sulla variazione di disparità di più o meno 1 tra i pixel vicini.
+    :param P2: parametro che controlla l'uniformità della disparità. P2 > P1. Tale parametro indica la penalità
+    sulla variazione di disparità di più di 1 tra pixel vicini.
+    :param disp_12_max_diff: Differenza massima consentita.
+    :param pre_filter_cap: Valore di troncamento per i pixel dell'immagine prefiltrati.
+    :param uniqueness_radio:
+    :param speckle_win_size: Massima dimensione di smooth delle regioni di disparità da considerare.
+    :param speckle_range: Massima variazione di disparità all'interno di ciascun componente connesso.
     """
