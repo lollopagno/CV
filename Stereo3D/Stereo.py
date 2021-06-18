@@ -28,7 +28,7 @@ def drawlines(img_1, img_2, lines, pts1, pts2):
 img_1 = cv.imread("img1.jpg", 0)
 img_2 = cv.imread("img2.jpg", 0)
 
-# ORB Descrictor
+# ORB Descriptor
 orb = cv.ORB_create()
 
 kp1, des1 = orb.detectAndCompute(img_1, None)

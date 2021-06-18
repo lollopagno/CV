@@ -6,6 +6,8 @@
 *npz
 *yml
 
+*ply
+
 # Compiled file
 /venv*
 .idea*
