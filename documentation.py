@@ -186,3 +186,18 @@ def computeCorrespondEpilines(points, which_image, F):
     @return Vettore contenente le linee epipolari corrispondenti ai punti dell'altra immagine.
     Ogni linea è codifica da 3 punti (a, b, c) secondo l'equazione ax + by+ c = 0.
     """
+
+def reprojectImageTo3D(disparity, Q, handle_missing_value, d_depth):
+    r"""
+    Riproietta un'immagine di disparità in un spazio 3D. La funzione trasforma una mappa di disparità a singolo canale
+    in un'immagine a 3 canali che rappresenta la superficie 3D.
+
+    :param disparity: immagine di input.
+    :param Q: matrice di trasformazione proiettiva 4 X 4.
+    :param handle_missing_value: Indica se la funziona deve gestire i valori mancanti
+    (punti in cui la disparità non è stata calcolata). Se tale parametro è vero, i pixel con disparità
+    minima, che corrispondono agli outlier, vengono trasformati in punti 3D con un valore Z molto grande.
+    :param d_depth: profondità dell'arrray di output.
+
+    @return Immagine delle stesse dimensioni di quella di input.
+    """
