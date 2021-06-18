@@ -1,18 +1,14 @@
 
+# Text
 *txt
-*png
-*jpg
+
+# Data
 *npz
 *yml
 
 # Compiled file
 /venv*
 .idea*
-
-*npz
-*png
-*yml
-*txt
 
 # Python cache
 *pyc
