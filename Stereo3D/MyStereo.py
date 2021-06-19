@@ -3,8 +3,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 r""""
-Tutorial : https://becominghuman.ai/stereo-3d-reconstruction-with-opencv-using-an-iphone-camera-part-i-c013907d1ab5
+Tutorial :https://github.com/OmarPadierna/3DReconstruction
 """
+
+CALIBRATION = False
+frame = None
+image_to_be_acquired = 2
+image_acquired = 0
+
+
+def callback_mouse(event, x, y, flag, param):
+    global frame, image_acquired
+
+    if event == cv.EVENT_LBUTTONDOWN:
+        image_acquired += 1
+        print(f"Capture image {image_acquired}!")
+        cv.imwrite(f"images/img_{image_acquired}.png", frame)
 
 
 def load_data(name_file):
@@ -44,81 +58,112 @@ def create_output(vertices, colors, filename):
 
 
 def main():
+    global CALIBRATION, frame, image_acquired, image_to_be_acquired
+
     mtx, dist = load_data("data/data.npz")
 
-    img_1 = cv.imread("images/img_1.png")
-    img_2 = cv.imread("images/img_2.png")
+    if CALIBRATION:
+        # Camera Calibration
+        CALIBRATION = not CALIBRATION
 
-    height, width, _ = img_1.shape
+        # Callback window
+        cv.namedWindow("Calibration")
+        cv.setMouseCallback("Calibration", callback_mouse)
 
-    new_matrix, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (width, height), 1)
+        # Camera
+        cap = cv.VideoCapture(0)
 
-    img_1_undistort = cv.undistort(img_1, mtx, dist, newCameraMatrix=new_matrix)
-    img_2_undistort = cv.undistort(img_2, mtx, dist, newCameraMatrix=new_matrix)
+        while image_to_be_acquired > image_acquired:
 
-    img_1_down = downsample_image(img_1_undistort, 3)
-    img_2_down = downsample_image(img_2_undistort, 3)
+            success, frame = cap.read()
 
-    win_size = 5  # Finestra da scorrere sull'immagine per normalizzare luminosità e migliorare la trama.
-    min_disp = -1  # Minima disparità consentita tra le 2 immagini.
-    max_disp = 63  # Massima disparità consentita tra le 2 immagini.
-    num_disp = max_disp - min_disp
+            if success:
+                distortion = cv.undistort(frame, mtx, dist)
+                cv.imshow("Calibration", distortion)
+                cv.waitKey(1)
+            else:
+                break
+    else:
+        CALIBRATION = not CALIBRATION
 
-    stereo = cv.StereoSGBM_create(minDisparity=min_disp,
-                                  numDisparities=num_disp,
-                                  blockSize=5,
-                                  uniquenessRatio=5,
-                                  speckleWindowSize=5,
-                                  speckleRange=5,
-                                  disp12MaxDiff=1,
-                                  P1=8 * 3 * win_size ** 2,
-                                  P2=32 * 3 * win_size ** 2)
+    if image_acquired == image_to_be_acquired or CALIBRATION:
 
-    print("\nComputing the disparity map...")
-    disparity_map = stereo.compute(img_1_down, img_2_down)
+        img_1 = cv.imread("images/img_1.png")
+        img_2 = cv.imread("images/img_2.png")
 
-    plt.imshow(disparity_map, 'gray')
-    plt.show()
+        height, width, _ = img_1.shape
 
-    print("\nGenerating the 3D map...")
-    # Get new downsampled width and height
-    h, w, _ = img_2_down.shape
+        new_matrix, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (width, height), 1)
 
-    # Load focal length.
-    focal_length = np.load('data/FocalLength.npy')
+        img_1_undistort = cv.undistort(img_1, mtx, dist, newCameraMatrix=new_matrix)
+        img_2_undistort = cv.undistort(img_2, mtx, dist, newCameraMatrix=new_matrix)
 
-    # Perspective transformation matrix
-    # This transformation matrix is from the openCV documentation.
-    Q = np.float32([[1, 0, 0, -w / 2.0],
-                    [0, -1, 0, h / 2.0],
-                    [0, 0, 0, -focal_length],
-                    [0, 0, 1, 0]])
+        img_1_down = downsample_image(img_1, 3)
+        img_2_down = downsample_image(img_2, 3)
 
-    # This transformation matrix is derived from Prof. Didier Stricker's power point presentation on computer vision.
-    # Link : https://ags.cs.uni-kl.de/fileadmin/inf_ags/3dcv-ws14-15/3DCV_lec01_camera.pdf
-    Q2 = np.float32([[1, 0, 0, 0],
-                     [0, -1, 0, 0],
-                     [0, 0, focal_length * 0.05, 0],  # Focal length multiplication obtained experimentally.
-                     [0, 0, 0, 1]])
+        win_size = 5  # Finestra da scorrere sull'immagine per normalizzare luminosità e migliorare la trama.
+        min_disp = -1  # Minima disparità consentita tra le 2 immagini.
+        max_disp = 63  # Massima disparità consentita tra le 2 immagini.
+        num_disp = max_disp - min_disp
 
-    # Reproject points into 3D
-    points_3D = cv.reprojectImageTo3D(disparity_map, Q2)
+        stereo = cv.StereoSGBM_create(minDisparity=min_disp,
+                                      numDisparities=num_disp,
+                                      blockSize=5,
+                                      uniquenessRatio=5,
+                                      speckleWindowSize=5,
+                                      speckleRange=5,
+                                      disp12MaxDiff=1,
+                                      P1=8 * 3 * win_size ** 2,
+                                      P2=32 * 3 * win_size ** 2)
 
-    colors = cv.cvtColor(img_1_down, cv.COLOR_BGR2RGB)
+        print("\nComputing the disparity map...")
+        disparity_map = stereo.compute(img_1_down, img_2_down)
 
-    # Get rid of points with value 0 (i.e no depth)
-    mask_map = disparity_map > disparity_map.min()
+        plt.imshow(disparity_map, 'gray')
+        plt.show()
 
-    # Mask colors and points.
-    output_points = points_3D[mask_map]
-    output_colors = colors[mask_map]
+        print("\nGenerating the 3D map...")
+        # Get new downsampled width and height
+        h, w, _ = img_2_down.shape
 
-    # Define name for output file
-    output_file = 'data/reconstructed.ply'
+        # Load focal length.
+        focal_length = np.load('data/FocalLength.npy')
 
-    # Generate point cloud
-    print("\n Creating the output file... \n")
-    create_output(output_points, output_colors, output_file)
+        # Perspective transformation matrix
+        # This transformation matrix is from the openCV documentation.
+        Q = np.float32([[1, 0, 0, -w / 2.0],
+                        [0, -1, 0, h / 2.0],
+                        [0, 0, 0, -focal_length],
+                        [0, 0, 1, 0]])
+
+        # This transformation matrix is derived from Prof. Didier Stricker's power point presentation on computer vision.
+        # Link : https://ags.cs.uni-kl.de/fileadmin/inf_ags/3dcv-ws14-15/3DCV_lec01_camera.pdf
+        Q2 = np.float32([[1, 0, 0, 0],
+                         [0, -1, 0, 0],
+                         [0, 0, focal_length * 0.05, 0],  # Focal length multiplication obtained experimentally.
+                         [0, 0, 0, 1]])
+
+        # Reproject points into 3D
+        points_3D = cv.reprojectImageTo3D(disparity_map, Q2)
+
+        colors = cv.cvtColor(img_1_down, cv.COLOR_BGR2RGB)
+
+        # Get rid of points with value 0 (i.e no depth)
+        mask_map = disparity_map > disparity_map.min()
+
+        # Mask colors and points.
+        output_points = points_3D[mask_map]
+        output_colors = colors[mask_map]
+
+        # Define name for output file
+        output_file = 'data/reconstructed.ply'
+
+        # Generate point cloud
+        print("\n Creating the output file... \n")
+        create_output(output_points, output_colors, output_file)
+
+    else:
+        print("Images not captured")
 
 
 if __name__ == "__main__":
