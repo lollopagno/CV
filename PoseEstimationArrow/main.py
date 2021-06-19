@@ -23,7 +23,7 @@ criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 if CALIBRATION:
     calibration = cal.Calibration(obj_p, criteria=criteria)
 else:
-    pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=False)
+    pose_estimation = PoseEstimation(obj_p, criteria, 'data/data.npz', draw_cube=False)
 
 mtx_mean = []
 dist_mean = []
