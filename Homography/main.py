@@ -14,10 +14,10 @@ def load_images(path):
 
     for card in my_cards:
         img = cv.imread(f"{path}/{card}", 0)
+        img = cv.resize(img, (750, 750))
         cards.append(img)
         cards_name.append(os.path.splitext(card)[0])
 
-    print(f"Cards loaded: {len(cards)}")
     return cards, cards_name
 
 
@@ -62,6 +62,7 @@ cards, cards_name = load_images("cards")
 descriptors = get_descriptors(cards)
 
 cap = cv.VideoCapture(0)
+cap.set(cv.CAP_PROP_AUTOFOCUS, 1)
 previous_time = 0
 
 while True:
