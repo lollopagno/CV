@@ -2,10 +2,7 @@ import cv2 as cv
 import numpy as np
 import time
 import os
-
-orb = cv.ORB_create()  # Descriptor
-matcher = cv.BFMatcher()  # Matcher
-
+from Homography.Matching import Matching
 
 def load_images(path):
     cards = []
@@ -21,43 +18,7 @@ def load_images(path):
     return cards, cards_name
 
 
-def get_descriptors(cards):
-    global orb
-    descriptor_total = []
 
-    for card in cards:
-        kp, desc = orb.detectAndCompute(card, None)
-        descriptor_total.append([kp, desc])
-
-    return descriptor_total
-
-
-def find_card(img, descriptors, threshold=15):
-    global orb, matcher
-
-    match_total = []
-    good = []
-    result = -1
-    kp, desc_2 = orb.detectAndCompute(img, None)
-
-    try:
-        for desc in descriptors:
-            matches = matcher.knnMatch(desc[1], desc_2, k=2)
-
-            for m, n in matches:
-                if m.distance < 0.75 * n.distance:
-                    good.append([m])
-            match_total.append(len(good))
-
-    except Exception as e:
-        # print(f"Error: {e}")
-        pass
-
-    if len(match_total) != 0:
-        if max(match_total) > threshold:
-            result = match_total.index(max(match_total))
-
-    return result, kp, good
 
 
 def edge(img):
@@ -66,8 +27,11 @@ def edge(img):
     return canny
 
 
+
 cards, cards_name = load_images("cards")
-descriptors = get_descriptors(cards)
+
+feature_matcher = Matching(cards)
+descriptors = feature_matcher.get_descriptors()
 
 cap = cv.VideoCapture(0)
 cap.set(cv.CAP_PROP_AUTOFOCUS, 1)
@@ -85,9 +49,7 @@ while True:
         # ******************** #
 
         # Feature matching
-        # TODO Matching not found
-        frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        id_card, kp_input_card, good = find_card(frame_gray, descriptors)
+        id_card, kp_input_card, good = feature_matcher.find_card(frame)
         if id_card != -1:
             cv.putText(frame, cards_name[id_card], (450, 35), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 255), 2)
 
