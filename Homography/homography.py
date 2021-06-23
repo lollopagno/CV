@@ -3,6 +3,10 @@ import numpy as np
 import time
 import os
 from Homography.Matching import Matching
+from Homography.Edge import Edge
+
+NAME_WINDOW = "Original"
+
 
 def load_images(path):
     cards = []
@@ -18,23 +22,35 @@ def load_images(path):
     return cards, cards_name
 
 
-
-
-
-def edge(img):
-    blur = cv.blur(img, (3, 3))
-    canny = cv.Canny(blur, 50, 150)
-    return canny
-
-
-
 cards, cards_name = load_images("cards")
 
 feature_matcher = Matching(cards)
 descriptors = feature_matcher.get_descriptors()
 
+edge_detection = Edge()
+
+
+def callback_edge_detection(event, x, y, flag, param):
+    if event == cv.EVENT_LBUTTONDOWN:
+        print(f"Clicked image in position ({x},{y})")
+
+        frame = edge_detection.frame
+
+        # Edge detection
+        img_edge = edge_detection.find_card(frame)
+        #cv.imshow("Edge", img_edge)
+
+        edge_detection.get_card(frame)
+        # ******************** #
+
+
+# Camera
 cap = cv.VideoCapture(0)
 cap.set(cv.CAP_PROP_AUTOFOCUS, 1)
+
+# Callback image
+cv.namedWindow(NAME_WINDOW)
+cv.setMouseCallback(NAME_WINDOW, callback_edge_detection)
 previous_time = 0
 
 while True:
@@ -42,11 +58,15 @@ while True:
     success, frame = cap.read()
 
     if success:
+
         # Frame rate
         current_time = time.time()
         fps = np.divide(1, current_time - previous_time)
         previous_time = current_time
         # ******************** #
+
+        orginal_frame = frame.copy()
+        edge_detection.set_frame(orginal_frame)
 
         # Feature matching
         id_card, kp_input_card, good = feature_matcher.find_card(frame)
@@ -56,14 +76,11 @@ while True:
         img_kp = cv.drawKeypoints(frame, kp_input_card, None, (255, 0, 0), 2)
         # ******************** #
 
-        # Edge detection
-        img_canny = edge(frame_gray)
-        cv.imshow("Edge", img_canny)
-        # ******************** #
-
         cv.putText(frame, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
-        cv.imshow("Keypoint", img_kp)
-        cv.imshow("Current frame", frame)
+        # cv.imshow("Keypoint", img_kp)
+        # cv.imshow("Current frame", frame)
+        cv.imshow("Canny", cv.Canny(cv.cvtColor(orginal_frame, cv.COLOR_BGR2GRAY), 50, 150))
+        cv.imshow(NAME_WINDOW, orginal_frame)
         cv.waitKey(1)
 
         # if len(good) != 0:
