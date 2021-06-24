@@ -22,7 +22,7 @@ while True:
         previous_time = current_time
 
         # Dense optical flow
-        img_of = of.start(img)
+        img_of = of.start(img.copy())
 
         # Detector
         detector.find_hands(img, draw=True)
