@@ -21,7 +21,7 @@ def load_images(path):
     return cards, cards_name
 
 
-cards, cards_name = load_images("../Homography/cards")
+cards, cards_name = load_images("cards")
 
 feature_matcher = Matching(cards)
 descriptors = feature_matcher.get_descriptors()
