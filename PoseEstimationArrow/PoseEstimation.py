@@ -8,13 +8,12 @@ axis_cube = np.float32([[0, 0, 0], [0, 3, 0], [3, 3, 0], [3, 0, 0],
 
 
 def load_data(name_file):
-    mtx, dist = [], []
-
     try:
         with np.load(name_file) as X:
             mtx, dist, _, _ = [X[i] for i in ('mtx', 'dist', 'rvecs', 'tvecs')]
     except Exception as e:
-        print(f"Exception load data: {e}")
+        with np.load(name_file) as X:
+            mtx, dist = [X[i] for i in ('mtx', 'dist')]
 
     return mtx, dist
 
@@ -55,14 +54,14 @@ def draw_cube(img, img_pts):
 
 class PoseEstimation:
 
-    def __init__(self, obj_p, criteria, name_file, size_chessboard=(9, 6), draw_cube = False):
+    def __init__(self, obj_p, criteria, name_file, size_chessboard=(9, 6), draw_cube=False):
         self.criteria = criteria
         self.mtx, self.dist = load_data(name_file)
         self.size = size_chessboard
         self.obj_p = obj_p
         self.draw_cube = draw_cube
 
-    def start(self, img_original):
+    def start(self, img_original, img_canvas):
         gray = cv.cvtColor(img_original, cv.COLOR_BGR2GRAY)
         ret, corners = cv.findChessboardCorners(gray, self.size, None)
 
@@ -76,9 +75,11 @@ class PoseEstimation:
                 # Project 3D points to image plane
                 img_pts, _ = cv.projectPoints(axis_cube, rvecs, tvecs, self.mtx, self.dist)
                 img_original = draw_cube(img_original, img_pts)
+                img_canvas = draw_cube(img_canvas, img_pts)
             else:
                 # Project 3D points to image plane
                 img_pts, _ = cv.projectPoints(axis_arrow, rvecs, tvecs, self.mtx, self.dist)
                 img_original = draw_arrow(img_original, corners_2, img_pts)
+                img_canvas = draw_arrow(img_canvas, corners_2, img_pts)
 
-        return img_original
+        return img_original, img_canvas
