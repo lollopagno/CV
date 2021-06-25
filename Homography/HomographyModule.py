@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 
-class Edge:
+class HomographyModule:
 
     def __init__(self):
         self.contours_card = None

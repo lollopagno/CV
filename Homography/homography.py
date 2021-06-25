@@ -1,7 +1,7 @@
 import cv2 as cv
-from Homography.Edge import Edge
+from Homography.HomographyModule import HomographyModule
 
-edge_detector = Edge()
+edge_detector = HomographyModule()
 
 path_img = "img2.jpg"
 
