@@ -158,3 +158,40 @@ def findHomography(src_points, dst_points, method, ransac, max_iter, confidence)
 
     @return Trasformazione prospettica.
     """
+
+def calcOpticalFlowFarneback(prev, next, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags):
+    r"""
+    Calcola il flusso ottico denso usando l'algoritmo di Gunnar Farneback.
+
+    :param prev: frame precedente dell'immaggine
+    :param next: frame corrente
+    :param pyr_scale: scala dell'immagine per creare piramidi per ogni immagine.
+    :param levels: numero di livelli piramidali. Con levels=1 non vengono creati livelli aggiuntivi.
+    :param winsize: Dimensione della finestra.
+    :param iterations: numero di iterazioni che l'algoritmo fa ad ogni livello piramidale.
+    :param poly_n: dimensione dei pixel vicini usati per trovare l'espansione polinomiale per ogni pixel.
+    :param poly_sigma: deviazione standard della curca Gaussiana
+    :param flags: tipologie di operazioni disponibili da applicare (OPTFLOW_USE_INITIAL_FLOW , OPTFLOW_FARNEBACK_GAUSSIAN)
+
+    @return     flow: immagine di flusso di output calcolata aventi le stesse dimensioni di @prev.
+    """
+
+
+def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criteria, flags, minEigThreshold):
+    r"""
+    Calcola il flusso ottico per un set di feature sparse usando il metodo iterativo Lucas-Kanade con piramidi.
+
+    :param prev: immagine di input precedente.
+    :param next: immagine corrente.
+    :param prevPts: punti associati all'immagine @prev.
+    :param nextPts: punti associati all'immagine @next
+    :param winSize: dimensione della finestra di ricerca.
+    :param maxLevel: numero di livelli piramidali massimi.
+    :param criteria: criteri di terminazione dell'algortimo.
+    :param flags: tipologie di operazioni disponibili da applicare (OPTFLOW_USE_INITIAL_FLOW , OPTFLOW_LK_GET_MIN_EIGENVALS)
+
+    @return     p1: nuove posizioni calcolate dalle features di input.
+                status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
+                error: errore dell'output.
+    """
+    pass
