@@ -23,7 +23,7 @@ criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 if CALIBRATION:
     calibration = cal.Calibration(obj_p, criteria=criteria)
 else:
-    pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=False)
+    pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
 
 mtx_mean = []
 dist_mean = []
@@ -41,7 +41,6 @@ def callback_mouse(event, x, y, flag, param):
         if success:
             errors[clicked_image] = error
             clicked_image += 1
-            # img = pose_estimation.start(frame)
 
         cv.putText(img, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         cv.imshow(NAME_WINDOW, img)
@@ -68,6 +67,8 @@ def main():
         success, frame = cap.read()
 
         if success:
+
+            img_canvas = np.zeros(cap.read()[1].shape, np.uint8)
 
             # Frame rate
             current_time = time.time()
@@ -105,8 +106,9 @@ def main():
 
             else:
                 # Pose Estimation
-                img = pose_estimation.start(frame)
+                img, img_canvas = pose_estimation.start(frame, img_canvas)
                 cv.imshow("Image", img)
+                cv.imshow("Canvas", img_canvas)
                 cv.waitKey(1)
 
 
