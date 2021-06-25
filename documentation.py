@@ -201,3 +201,43 @@ def reprojectImageTo3D(disparity, Q, handle_missing_value, d_depth):
 
     @return Immagine delle stesse dimensioni di quella di input.
     """
+
+
+def getPerspectiveTransform(src, dst):
+    r"""
+    Calcola una trasformazione prospettica da quattro coppie dei punti corrispondenti.
+
+    :param src: coordinate dei vertici corrispondenti all'immagine originale.
+    :param dst: coordinate dei vartici corrispondenrti all'immagine di output.
+
+    @return     M: matrice prospettica dei vertici.
+    """
+
+
+def warpPerspective(src, M, size, flags, border_mode, border_value):
+    r"""
+    Applica la trasformazione prospettica ad un immagine.
+
+    :param src: immagine di input
+    :param M: matrice di trasformazione
+    :param size: dimensione dell'immagine di output.
+    :param flags: tipo di interpolazione da eseguire
+    :param border_mode: metodo di estrapolazione dei pixels
+    :param border_value: usato in caso di bordi costanti.
+
+    @return     warper: immagine di output a cui è stata applicata la trasformazione.
+    """
+
+def findHomography(src_points, dst_points, method, ransac, max_iter, confidence):
+    r"""
+    Trova la trasformazione prospettica tra due piani.
+
+    :param src_points: coordinate dei punti del piano di input.
+    :param dst_points: coordinate dei punti del piano target.
+    :param method: metodo usato per calcolare la matrice omografica.
+    :param ransac: Massimo errore di retroprograzione permesso (utilizzato con RANSAC).
+    :param max_iter: numero massimo di iterazioni RANSAC.
+    :param confidence: livello di confidenza compreso tra 0 e 1.
+
+    @return Trasformazione prospettica.
+    """

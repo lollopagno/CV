@@ -20,6 +20,7 @@ class HandDetector:
                                          self.tracking_confidence)
 
         self.mp_draw = mp.solutions.drawing_utils
+        self.tip_ids = [4, 8, 12, 16, 20]
 
     def find_hands(self, img, draw=True):
         r"""
@@ -47,7 +48,7 @@ class HandDetector:
         :return: list containing the position of hands.
         """
 
-        lm_list = []
+        self.lm_list = []
 
         if self.results.multi_hand_landmarks:
             my_hand = self.results.multi_hand_landmarks[hand_no]
@@ -58,9 +59,32 @@ class HandDetector:
                 """
                 height, width, n_channel = img.shape
                 cx, cy = int(lm.x * width), int(lm.y * height)
-                lm_list.append([_id, cx, cy])
+                self.lm_list.append([_id, cx, cy])
 
                 if draw:
                     cv.circle(img, (cx, cy), 7, (0, 255, 255), cv.FILLED)
 
-        return lm_list
+        return self.lm_list
+
+    def fingers_up(self):
+        r"""
+        Detect which fingers are ups.
+        """
+        fingers = []
+
+        # Thumb
+        if self.lm_list[self.tip_ids[0]][1] < self.lm_list[self.tip_ids[0] - 1][1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
+
+        # Fingers
+        for _id in range(1, 5):
+            if self.lm_list[self.tip_ids[_id]][2] < self.lm_list[self.tip_ids[_id] - 2][2]:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+
+            # totalFingers = fingers.count(1)
+
+        return fingers

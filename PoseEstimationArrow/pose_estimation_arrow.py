@@ -8,7 +8,7 @@ from PoseEstimationArrow.PoseEstimation import PoseEstimation
 from PoseEstimationArrow import utility
 
 NAME_WINDOW = "Calibration"
-CALIBRATION = True
+CALIBRATION = False
 clicked_image = 0
 minimum_image = 20
 errors = np.zeros(minimum_image)
@@ -23,7 +23,7 @@ criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 if CALIBRATION:
     calibration = cal.Calibration(obj_p, criteria=criteria)
 else:
-    pose_estimation = PoseEstimation(obj_p, criteria, 'data/data.npz', draw_cube=False)
+    pose_estimation = PoseEstimation(obj_p, criteria, 'data.npz', draw_cube=True)
 
 mtx_mean = []
 dist_mean = []
@@ -41,7 +41,6 @@ def callback_mouse(event, x, y, flag, param):
         if success:
             errors[clicked_image] = error
             clicked_image += 1
-            # img = pose_estimation.start(frame)
 
         cv.putText(img, f"{clicked_image}/{minimum_image}", (530, 460), cv.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         cv.imshow(NAME_WINDOW, img)
@@ -69,6 +68,8 @@ def main():
 
         if success:
 
+            img_canvas = np.zeros(cap.read()[1].shape, np.uint8)
+
             # Frame rate
             current_time = time.time()
             fps = np.divide(1, (current_time - previous_time))
@@ -92,8 +93,9 @@ def main():
 
                     if len(mtx_arr) == 0:
                         print(Fore.RED + f"Total error: {np.mean(errors)}")
-                        mtx_mean, dist_mean = utility.get_mean_matrix_coeff(mtx_arr, dist_arr, minimum_image,
-                                                                            calibration.current_date)
+                        mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image,
+                                                                   calibration.current_date)
+
                     # Undistort
                     dst = cv.undistort(frame, mtx_mean, dist_mean)
 
@@ -104,8 +106,9 @@ def main():
 
             else:
                 # Pose Estimation
-                img = pose_estimation.start(frame)
+                img, img_canvas = pose_estimation.start(frame, img_canvas)
                 cv.imshow("Image", img)
+                cv.imshow("Canvas", img_canvas)
                 cv.waitKey(1)
 
 
