@@ -93,7 +93,6 @@ def projectPoints(obj_points, rvec, tvec, camera_matrix, coeff_dist):
     @return     img_point: array di punti immagine.
                 jacobian: (output opzionale), matrice jacobiana delle derivate dei punti immagine.
     """
-    pass
 
 
 def undistort(img, camera_matrix, coeff_dist, new_camera_matrix):
@@ -155,8 +154,6 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
                 error: errore dell'output.
     """
-    pass
-<<<<<<< Updated upstream
 
 
 def getPerspectiveTransform(src, dst):
@@ -184,6 +181,7 @@ def warpPerspective(src, M, size, flags, border_mode, border_value):
     @return     warper: immagine di output a cui è stata applicata la trasformazione.
     """
 
+
 def findHomography(src_points, dst_points, method, ransac, max_iter, confidence):
     r"""
     Trova la trasformazione prospettica tra due piani.
@@ -197,6 +195,7 @@ def findHomography(src_points, dst_points, method, ransac, max_iter, confidence)
 
     @return Trasformazione prospettica.
     """
+
 
 def calcOpticalFlowFarneback(prev, next, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags):
     r"""
@@ -233,6 +232,3 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
                 error: errore dell'output.
     """
-    pass
-=======
->>>>>>> Stashed changes
