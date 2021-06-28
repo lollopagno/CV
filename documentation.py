@@ -155,9 +155,6 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
                 error: errore dell'output.
     """
-    pass
-<<<<<<< Updated upstream
-
 
 def getPerspectiveTransform(src, dst):
     r"""
@@ -233,6 +230,3 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
                 error: errore dell'output.
     """
-    pass
-=======
->>>>>>> Stashed changes
