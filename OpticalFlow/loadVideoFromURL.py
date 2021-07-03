@@ -83,13 +83,17 @@ if __name__ == '__main__':
     okinawa = "https://youtu.be/h0MHEbYz1c8"  # Okinawa (Japan)
     busan = "https://youtu.be/pUcWdJoAuyw"  # Busan (Nord Korea)
 
-    video = Video(url=taipei)
+    video = Video(url=jackson_hole)
 
-    # video = pafy.new(taipei)
-    # play = video.getbest()
-    # input: play.url (to openCvProcessing function)
+    load_pafy = True
 
-    #video.dl_stream(3)
-    openCvProcessing(saved_video_file=0)
+    if load_pafy:
+        video_pafy = pafy.new(jackson_hole)
+        play = video_pafy.getbest()
+        # input: play.url (to openCvProcessing function)
+    else:
+        video.dl_stream(3)
+
+    openCvProcessing(play.url)
 
 # Classes : car, bus, truck
