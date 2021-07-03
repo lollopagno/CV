@@ -155,7 +155,6 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 error: errore dell'output.
     """
 
-
 def getPerspectiveTransform(src, dst):
     r"""
     Calcola una trasformazione prospettica da quattro coppie dei punti corrispondenti.
