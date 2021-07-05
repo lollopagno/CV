@@ -155,6 +155,7 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 error: errore dell'output.
     """
 
+
 def getPerspectiveTransform(src, dst):
     r"""
     Calcola una trasformazione prospettica da quattro coppie dei punti corrispondenti.
@@ -231,3 +232,22 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
                 status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
                 error: errore dell'output.
     """
+
+
+def goodFeaturesToTrack(img, max_corners, quality_level, min_distance, mask, block_size, use_harris_detector, k):
+    r"""
+    Determina i corner di maggior interesse per il calcolo del flusso otttico su un'immagine o su
+    una particolare regione.
+
+    :param img: immagine di input.
+    :param max_corners: numero massimo di corners da restituire.
+    :param quality_level: qualità minima accettata dai corners.
+    :param min_distance: distanza minima euclidea possibile tra i corners restituiti.
+    :param mask: regione di interesse - input opzionale.
+    :param block_size: dimensione di un blocco medio per il calcolo della matrice di covarianza.
+    :param use_harris_detector: booleano se usare Harris corner detector.
+    :param k: parametro per il rilevatore per Harris.
+
+    @return     corners: corners identificati.
+    """
+    pass
