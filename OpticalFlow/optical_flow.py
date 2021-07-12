@@ -21,6 +21,13 @@ NAME_WINDOW = "Optical Flow"
 
 
 def get_cap(url, height, width):
+    r"""
+    Parse url video. Setting video capture.
+
+    :param url: url-video.
+    :param height: height of camera video.
+    :param width: width of camera video.
+    """
     flag = False  # Fix unknown exception of pafy
 
     while not flag:
@@ -61,7 +68,9 @@ class App:
         # Frame Rate
         self.frame_rate = FrameRate()
 
+        # Constants
         self.alpha = 0.5  # Used for addWeighted
+        self.ms_2_kmh = 3.6  # Used to convert m/s into km/h
 
     def run(self):
         _, first_frame = self.camera.read()
@@ -86,9 +95,10 @@ class App:
         cv.fillConvexPoly(view_mask, frame_rate_polygon, 1)
         cv.fillConvexPoly(view_mask, rectangle_polygon, 1)
 
-        # Other parameters (corners, velocity)
-        v1, c1 = 0, 0
-        v2, c2 = 0, 0
+        # Parameters (corners, velocity, counter)
+        velocity_1, corners_1 = 0, 0
+        velocity_2, corners_2 = 0, 0
+        counter_1, counter_2 = 0, 0
 
         while self.camera.isOpened():
             ret, frame = self.camera.read()
@@ -102,15 +112,14 @@ class App:
                 img = cv.bitwise_and(frame_copy, frame_copy, mask=view_mask)
 
                 # Draw text
-                Utility.set_text(parameters_mask, f"1-Lane speed: {v1} km/h,  ", (20, 30), color=Color.WHITE, dim=1.2,
+                Utility.set_text(parameters_mask, f"1-Lane speed: {velocity_1} km/h,  ", (20, 30), color=Color.WHITE,
+                                 dim=1.2, thickness=1)
+                Utility.set_text(parameters_mask, f"corners 1: {corners_1}", (270, 30), color=Color.WHITE, dim=1.2,
                                  thickness=1)
-                Utility.set_text(parameters_mask, f"corners 1: {c1}", (270, 30), color=Color.WHITE, dim=1.2,
+                Utility.set_text(parameters_mask, f"2-Lane speed: {velocity_2} km/h,  ", (20, 60), color=Color.WHITE,
+                                 dim=1.2, thickness=1)
+                Utility.set_text(parameters_mask, f"corners 2: {corners_2}", (270, 60), color=Color.WHITE, dim=1.2,
                                  thickness=1)
-                Utility.set_text(parameters_mask, f"2-Lane speed: {v2} km/h,  ", (20, 60), color=Color.WHITE, dim=1.2,
-                                 thickness=1)
-                Utility.set_text(parameters_mask, f"corners 2: {c2}", (270, 60), color=Color.WHITE, dim=1.2,
-                                 thickness=1)
-
                 # Draw numbers
                 Utility.set_text(img, "1", (100, 257), color=Color.CYAN, dim=3, thickness=3)
                 Utility.set_text(img, "2", (145, 257), color=Color.RED, dim=3, thickness=3)
@@ -157,21 +166,52 @@ class App:
                     # Update tracks
                     self.tracks = new_tracks
 
+                    # Reset counter polygons
+                    counter_1, counter_2 = 0, 0
+
                     for index, track in enumerate(self.tracks):
 
+                        # TODO moved these
+                        mm1 = 0
+                        px2m1 = 0
+
+                        mm2 = 0
+                        px2m2 = 0
+
+                        # Determine which polygon the corner belongs to
                         is_inside_1 = cv.pointPolygonTest(poly_lane_1, track[0], True)
+                        is_inside_2 = cv.pointPolygonTest(poly_lane_2, track[0], True)
 
                         if is_inside_1 > 0:
-                            pass
-                            # TODO continue
-                            # ptn1 += 1
-                            # dif1 = tuple(map(lambda i, j: i - j, track[0], track[1]))
-                            # mm1 += math.sqrt(dif1[0] * dif1[0] + dif1[1] * dif1[1])
-                            # mmm1 = mm1 / ptn1
-                            # v1 = mmm1 * px2m1 * fps * ms2kmh
+                            counter_1 += 1
+                            dif1 = tuple(map(lambda i, j: i - j, track[0], track[1]))
+                            mm1 += math.sqrt(dif1[0] * dif1[0] + dif1[1] * dif1[1])
+                            mmm1 = mm1 / counter_1
+                            velocity_1 = mmm1 * px2m1 * self.frame_rate.fps * self.ms_2_kmh
+
+                        if is_inside_2 > 0:
+                            counter_2 += 1
+                            dif2 = tuple(map(lambda i, j: i - j, track[0], track[1]))
+                            mm2 += math.sqrt(dif2[0] * dif2[0] + dif2[1] * dif2[1])
+                            mmm2 = mm2 / counter_2
+                            velocity_2 = mmm2 * px2m2 * self.frame_rate.fps * self.ms_2_kmh
 
                 if self.id_frame % self.detect_interval == 0:
                     f"""Update values each n-interval ({self.detect_interval}) frames"""
+
+                    # Update velocity, corners
+                    if counter_1 > 10:
+                        # Lane 1
+                        Utility.set_text(parameters_mask, f"1-Lane speed: {velocity_1} km/h,  ", (20, 30),
+                                         color=Color.WHITE, dim=1.2, thickness=1)
+                        Utility.set_text(parameters_mask, f"corners 1: {counter_1}", (270, 30), color=Color.WHITE,
+                                         dim=1.2, thickness=1)
+                    if counter_2 > 10:
+                        # Lane 2
+                        Utility.set_text(parameters_mask, f"2-Lane speed: {velocity_2} km/h,  ", (20, 60),
+                                         color=Color.WHITE, dim=1.2, thickness=1)
+                        Utility.set_text(parameters_mask, f"corners 2: {corners_2}", (270, 60), color=Color.WHITE,
+                                         dim=1.2, thickness=1)
 
                     mask = np.zeros_like(frame_gray)
                     mask[:] = 255
