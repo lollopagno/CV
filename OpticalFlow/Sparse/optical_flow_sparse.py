@@ -41,8 +41,8 @@ def get_cap(url, height, width):
             cap.set(cv.CAP_PROP_FRAME_WIDTH, width)
             cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)
             flag = True
-        except:
-            pass
+        except Exception as e:
+            print(f"Exception in load video: {e}")
 
     return cap
 

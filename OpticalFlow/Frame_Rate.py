@@ -1,6 +1,6 @@
 import time
 import numpy as np
-import utility as Utility
+import OpticalFlow.utility as Utility
 import color as Color
 
 
