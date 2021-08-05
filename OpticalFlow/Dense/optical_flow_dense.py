@@ -12,7 +12,7 @@ def detect_car(img, original):
 
     contours, _ = cv.findContours(opening, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
 
-    for cnt in contours:
+    for num, cnt in enumerate(contours):
         (x, y, w, h) = cv.boundingRect(cnt)
         area = cv.contourArea(cnt)
 
@@ -21,12 +21,16 @@ def detect_car(img, original):
 
         cv.rectangle(original, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
+        height, width, _ = original.shape
+        thick = int((height + width) // 900)
+        cv.putText(original, f"Vehicle {num}", (x, y - 12), 0, 1e-3 * height, (0, 0, 255), thick)
+
     cv.imshow("Mask motion", opening)
 
 
 # url_video = "https://thumbs.gfycat.com/LoathsomeFelineAmericanshorthair-mobile.mp4"
-# url_video = "https://youtu.be/XV1q_2Cl6mI"  # Taipei
-url_video = "https://youtu.be/f1DyY6a44yA"  # Cambridge
+url_video = "https://youtu.be/XV1q_2Cl6mI"  # Taipei
+#url_video = "https://youtu.be/f1DyY6a44yA"  # Cambridge
 
 show_log = False
 height = 512
