@@ -1,9 +1,9 @@
 import numpy as np
 import cv2 as cv
 import pafy
-import utility as Utility
+import OpticalFlow.utility as Utility
 import color as Color
-from Frame_Rate import FrameRate
+from OpticalFlow.Frame_Rate import FrameRate
 
 # Params for Shi-Tomasi corner detection
 feature_params = dict(maxCorners=500,
@@ -37,7 +37,7 @@ def get_cap(url, height, width):
             video_pafy = pafy.new(url)
             play = video_pafy.getbest()
 
-            cap = cv.VideoCapture("video/taipei.avi")
+            cap = cv.VideoCapture(play.url)
             cap.set(cv.CAP_PROP_FRAME_WIDTH, width)
             cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)
             flag = True
