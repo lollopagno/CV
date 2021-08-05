@@ -125,8 +125,9 @@ def calcOpticalFlowFarneback(prev, next, pyr_scale, levels, winsize, iterations,
 
     :param prev: frame precedente dell'immaggine
     :param next: frame corrente
-    :param pyr_scale: scala dell'immagine per creare piramidi per ogni immagine.
-    :param levels: numero di livelli piramidali. Con levels=1 non vengono creati livelli aggiuntivi.
+    :param pyr_scale: scala dell'immagine per creare piramidi per ogni immagine. Deve essere < 1. Se settato a 0.5,
+                      significa una piramide classica in cui ogni livello successivo è due volte più piccolo del precedente.
+    :param levels: numero di livelli piramidali. Con levels=1 non vengono creati livelli aggiuntivi e vengono utilizzati i frame originali.
     :param winsize: Dimensione della finestra.
     :param iterations: numero di iterazioni che l'algoritmo fa ad ogni livello piramidale.
     :param poly_n: dimensione dei pixel vicini usati per trovare l'espansione polinomiale per ogni pixel.
@@ -141,20 +142,33 @@ def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criter
     r"""
     Calcola il flusso ottico per un set di feature sparse usando il metodo iterativo Lucas-Kanade con piramidi.
 
-    :param prev: immagine di input precedente.
-    :param next: immagine corrente.
+    :param prev: frame precedente dell'immaggine
+    :param next: frame corrente.
     :param prevPts: punti associati all'immagine @prev.
     :param nextPts: punti associati all'immagine @next
     :param winSize: dimensione della finestra di ricerca.
     :param maxLevel: numero di livelli piramidali massimi.
     :param criteria: criteri di terminazione dell'algortimo.
     :param flags: tipologie di operazioni disponibili da applicare (OPTFLOW_USE_INITIAL_FLOW , OPTFLOW_LK_GET_MIN_EIGENVALS)
+    :param minEigThreshold: parametro utilizzato per consentire di rimuovere punti non buoni e migliorare le performance.
 
     @return     p1: nuove posizioni calcolate dalle features di input.
                 status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
                 error: errore dell'output.
     """
 
+def cartToPolar(x,y, angleInDegrees):
+    r""""
+    Calcola il magnitudo e l'angolo di due vettori 2D.
+
+    :param x: coordinate x dell'array. I valori in virgola mobile (float).
+    :param y: coordinate y dell'array. I valori in virgola mobile (float).
+    :param angleInDegrees: bool, indica se gli angoli sono misurati in radianti (impostazione di default)
+                           o in gradi.
+
+    @return     magnitude: magnitudo dell'array avente stessa dimensione e typo di @x.
+                angle:     angoli dell'array avente stessa dimensione e tipo di @x.
+    """
 
 def getPerspectiveTransform(src, dst):
     r"""
@@ -196,47 +210,9 @@ def findHomography(src_points, dst_points, method, ransac, max_iter, confidence)
     @return Trasformazione prospettica.
     """
 
-
-def calcOpticalFlowFarneback(prev, next, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags):
-    r"""
-    Calcola il flusso ottico denso usando l'algoritmo di Gunnar Farneback.
-
-    :param prev: frame precedente dell'immaggine
-    :param next: frame corrente
-    :param pyr_scale: scala dell'immagine per creare piramidi per ogni immagine.
-    :param levels: numero di livelli piramidali. Con levels=1 non vengono creati livelli aggiuntivi.
-    :param winsize: Dimensione della finestra.
-    :param iterations: numero di iterazioni che l'algoritmo fa ad ogni livello piramidale.
-    :param poly_n: dimensione dei pixel vicini usati per trovare l'espansione polinomiale per ogni pixel.
-    :param poly_sigma: deviazione standard della curca Gaussiana
-    :param flags: tipologie di operazioni disponibili da applicare (OPTFLOW_USE_INITIAL_FLOW , OPTFLOW_FARNEBACK_GAUSSIAN)
-
-    @return     flow: immagine di flusso di output calcolata aventi le stesse dimensioni di @prev.
-    """
-
-
-def calcOpticalFlowPyrLK(prev, next, prevPts, nextPts, winSize, maxLevel, criteria, flags, minEigThreshold):
-    r"""
-    Calcola il flusso ottico per un set di feature sparse usando il metodo iterativo Lucas-Kanade con piramidi.
-
-    :param prev: immagine di input precedente.
-    :param next: immagine corrente.
-    :param prevPts: punti associati all'immagine @prev.
-    :param nextPts: punti associati all'immagine @next
-    :param winSize: dimensione della finestra di ricerca.
-    :param maxLevel: numero di livelli piramidali massimi.
-    :param criteria: criteri di terminazione dell'algortimo.
-    :param flags: tipologie di operazioni disponibili da applicare (OPTFLOW_USE_INITIAL_FLOW , OPTFLOW_LK_GET_MIN_EIGENVALS)
-
-    @return     p1: nuove posizioni calcolate dalle features di input.
-                status: stato dell'output. Con status = 1, il flusso ottico è stato trovato, altrimenti status = 0.
-                error: errore dell'output.
-    """
-
-
 def goodFeaturesToTrack(img, max_corners, quality_level, min_distance, mask, block_size, use_harris_detector, k):
     r"""
-    Determina i corner di maggior interesse per il calcolo del flusso otttico su un'immagine o su
+    Determina i corner di maggior interesse per il calcolo del flusso ottico su un'immagine o su
     una particolare regione.
 
     :param img: immagine di input.
@@ -250,4 +226,34 @@ def goodFeaturesToTrack(img, max_corners, quality_level, min_distance, mask, blo
 
     @return     corners: corners identificati.
     """
-    pass
+
+def addWeighted(src1, alpha, src2, beta, gamma):
+    r"""
+    Calcola la somma pesata di due array (ovvero 2 immagini).
+
+    :param src1: primo array di input.
+    :param alpha: peso da attribuire agli elementi del primo array.
+    :param src2: secondo array di input.
+    :param beta: peso da attribuire agli elementi del secondo array.
+    :param gamma: scalare aggiunto a ciascun somma.
+
+    @return     dst: array (immagine) di output con stesse dimensioni e numero di canali degli array di input.
+    """
+
+def threshold(src, thresh, maxval):
+    r"""
+    Applica una soglia fissa ad ogni pixel dell'array. La funzione controlla il valore di ogni pixel, se supera il valore
+    di @thresh allora gli viene assegnato @maxval.
+
+    :param src: array di input.
+    :param thresh: valore di soglia.
+    :param maxval: valore massimo da assegnare al pixel se supera la soglia.
+
+    Alcune tipologie di thresholding sono:
+    - THRESH_BINARY
+    - THRESH_BINARY_INV
+    - THRESHT_OTSU
+    - THRESH_TRIANGLE
+
+    @return     dst: array di output avente la stessa dimensione e numero di canali dell'array di input.
+    """
