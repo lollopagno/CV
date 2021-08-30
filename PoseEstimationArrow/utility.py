@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import os
 
 
 def draw_corners_chessboard(frame, criteria, size=(9, 6)):
@@ -13,7 +14,7 @@ def draw_corners_chessboard(frame, criteria, size=(9, 6)):
 
 def get_matrices(mtx, dist, min_image, current_date):
     for index in range(0, min_image):
-        with np.load(f"{current_date}/Data/data_{index + 1}.npz") as X:
+        with np.load(f"data_calibration_30_points/Data/data_{index + 1}.npz") as X:
             _mtx, _dist, _, _ = [X[i] for i in ('mtx', 'dist', 'rvecs', 'tvecs')]
             mtx.append(_mtx)
             dist.append(_dist)
@@ -29,8 +30,8 @@ def get_matrices(mtx, dist, min_image, current_date):
                 if counter_mtx == len(mtx):
                     try:
                         mtx_mean[i][j] = (element[i][j] + mtx_mean[i][j]) / min_image
-                    except:
-                        pass
+                    except Exception as e:
+                        print(f"Error in average matrix: {e}")
                 else:
                     mtx_mean[i][j] = element[i][j] + mtx_mean[i][j]
 
@@ -42,9 +43,12 @@ def get_matrices(mtx, dist, min_image, current_date):
                 if counter_dist == len(dist):
                     try:
                         dist_mean[i][j] = (element[i][j] + dist_mean[i][j]) / min_image
-                    except:
-                        pass
+                    except Exception as e:
+                        print(f"Error in average distance: {e}")
                 else:
                     dist_mean[i][j] = element[i][j] + dist_mean[i][j]
+
+    if not os.path.exists(f"data_calibration_30_points/Data/data_mean.npz"):
+        np.savez(f"data_calibration_30_points/Data/data_mean", mtx=mtx_mean, dist=dist_mean)
 
     return mtx_mean, dist_mean

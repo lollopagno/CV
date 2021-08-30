@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 import time
+import os
 from colorama import Fore
 
 from PoseEstimationArrow import Calibration as cal
@@ -8,9 +9,9 @@ from PoseEstimationArrow.PoseEstimation import PoseEstimation
 from PoseEstimationArrow import utility
 
 NAME_WINDOW = "Calibration"
-CALIBRATION = False
+CALIBRATION = True
 clicked_image = 0
-minimum_image = 20
+minimum_image = 30
 errors = np.zeros(minimum_image)
 
 # Prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
@@ -69,6 +70,7 @@ def main():
         if success:
 
             img_canvas = np.zeros(cap.read()[1].shape, np.uint8)
+            frame_copy = frame.copy()
 
             # Frame rate
             current_time = time.time()
@@ -78,7 +80,7 @@ def main():
 
             if CALIBRATION:
                 # Camera Calibration
-                calibration.set_frame(frame.copy())
+                calibration.set_frame(frame_copy)
                 utility.draw_corners_chessboard(frame, criteria)
 
                 if clicked_image < minimum_image:
@@ -91,16 +93,31 @@ def main():
 
                 else:
 
-                    if len(mtx_arr) == 0:
-                        print(Fore.RED + f"Total error: {np.mean(errors)}")
-                        mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image,
-                                                                   calibration.current_date)
+                    if not os.path.exists(f"data_calibration_30_points/Data/data_mean.npz"):
+                        if len(mtx_arr) == 0:
+                            print(Fore.RED + f"Total error: {np.mean(errors)}")
+                            mtx_mean, dist_mean = utility.get_matrices(mtx_arr, dist_arr, minimum_image,
+                                                                       calibration.current_date)
+                    else:
 
-                    # Undistort
-                    dst = cv.undistort(frame, mtx_mean, dist_mean)
+                        with np.load(f"data_calibration_30_points/Data/data_mean.npz") as X:
+                            mtx_mean, dist_mean = X['mtx'], X['dist']
+
+                    h, w = frame.shape[:2]
+                    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx_mean, dist_mean, (w, h), 1, (w, h))
+
+                    # Undistort with cv.undistort (Solution 1)
+                    dst = cv.undistort(frame_copy, mtx_mean, dist_mean)
+
+                    # Undistort with remapping (Solution 2)
+                    # mapx, mapy = cv.initUndistortRectifyMap(mtx_mean, dist_mean, None, newcameramtx, (w, h), 5)
+                    # dst = cv.remap(frame_copy, mapx, mapy, cv.INTER_LINEAR)
+
+                    # x, y, w, h = roi
+                    # dst = dst[y:y + h, x:x + w]
 
                     cv.putText(dst, f"FPS: {int(fps)}", (10, 35), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
-                    cv.imshow('Image', dst)
+                    cv.imshow('Undistort', dst)
                     cv.imshow(NAME_WINDOW, frame)
                     cv.waitKey(1)
 
