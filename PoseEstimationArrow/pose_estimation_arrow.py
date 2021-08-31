@@ -107,7 +107,7 @@ def main():
                     newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx_mean, dist_mean, (w, h), 1, (w, h))
 
                     # Undistort with cv.undistort (Solution 1)
-                    dst = cv.undistort(frame_copy, mtx_mean, dist_mean)
+                    dst = cv.undistort(frame_copy, mtx_mean, dist_mean, None, newcameramtx)
 
                     # Undistort with remapping (Solution 2)
                     # mapx, mapy = cv.initUndistortRectifyMap(mtx_mean, dist_mean, None, newcameramtx, (w, h), 5)
